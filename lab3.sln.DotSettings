@@ -1,0 +1,21 @@
+<wpf:ResourceDictionary xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+    <!-- === Всегда использовать фигурные скобки === -->
+    <s:String x:Key="/Default/CodeStyle/CSharpBracesForIfElse/@EntryValue">AlwaysAdd</s:String>
+    <s:String x:Key="/Default/CodeStyle/CSharpBracesForFor/@EntryValue">AlwaysAdd</s:String>
+    <s:String x:Key="/Default/CodeStyle/CSharpBracesForForeach/@EntryValue">AlwaysAdd</s:String>
+    <s:String x:Key="/Default/CodeStyle/CSharpBracesForWhile/@EntryValue">AlwaysAdd</s:String>
+    <s:String x:Key="/Default/CodeStyle/CSharpBracesForDo/@EntryValue">AlwaysAdd</s:String>
+    <s:String x:Key="/Default/CodeStyle/CSharpBracesForUsing/@EntryValue">AlwaysAdd</s:String>
+    <s:String x:Key="/Default/CodeStyle/CSharpBracesForLock/@EntryValue">AlwaysAdd</s:String>
+
+    <!-- === Стиль фигурных скобок: на той же строке === -->
+    <s:String x:Key="/Default/CodeStyle/CSharpNewLineBeforeOpenBrace/@EntryValue">None</s:String>
+
+    <!-- === Code Cleanup активирует форматирование === -->
+    <s:Boolean x:Key="/Default/CodeCleanup/CodeCleanupProfile/@EntryValue">True</s:Boolean>
+
+    <!-- === Дополнительно: форматировать код и упорядочить usings === -->
+    <s:Boolean x:Key="/Default/CodeCleanup/FormatCode/@EntryValue">True</s:Boolean>
+    <s:Boolean x:Key="/Default/CodeCleanup/OptimizeUsings/@EntryValue">True</s:Boolean>
+</wpf:ResourceDictionary>

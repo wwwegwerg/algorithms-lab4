@@ -1,0 +1,61 @@
+root = true
+
+[*.cs]
+
+############################
+# === Общие правила ===
+############################
+
+# Кодировка и отступы
+indent_style = space
+indent_size = 4
+charset = utf-8
+# end_of_line = crlf
+insert_final_newline = false
+trim_trailing_whitespace = true
+
+############################
+# === Стиль скобок ===
+############################
+
+# Открывающая скобка на той же строке
+csharp_new_line_before_open_brace = none
+
+# Для конкретных конструкций — на той же строке
+csharp_new_line_before_open_brace_types = none
+csharp_new_line_before_open_brace_methods = none
+csharp_new_line_before_open_brace_accessors = none
+csharp_new_line_before_open_brace_anonymous_methods = none
+csharp_new_line_before_open_brace_control_blocks = none
+csharp_new_line_before_open_brace_anonymous_types = none
+csharp_new_line_before_open_brace_object_collection_array_initializers = none
+csharp_new_line_before_open_brace_lambdas = none
+
+############################
+# === Обязательные фигурные скобки ===
+############################
+
+csharp_prefer_braces = true:error
+
+# (Необязательно, но помогает Rider/VS быть последовательными)
+csharp_preserve_single_line_blocks = false
+csharp_preserve_single_line_statements = false
+
+############################
+# === Прочие рекомендации ===
+############################
+
+# Расставлять пробел после ключевых слов if/for/while
+csharp_space_after_keywords_in_control_flow_statements = true
+
+# Не переносить else/ catch/ finally на новую строку
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false
+
+# Одна инструкция на строку
+dotnet_diagnostic.IDE0055.severity = error
+
+# Автосвойства держать в одну строку
+csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_blocks = true

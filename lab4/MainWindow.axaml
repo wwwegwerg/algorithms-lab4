@@ -1,33 +1,20 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:lab4.Views"
         x:Class="lab4.MainWindow"
-        Width="800" Height="300"
-        Title="Squares from Input">
+        Width="900" Height="600"
+        Title="Sorting Visualizer (Avalonia 11.3.8)">
+    <TabControl>
+        <TabItem Header="Задание 1">
+            <views:SortingTabView />
+        </TabItem>
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
-        <TextBlock Grid.Row="0"
-                   Text="Введите числа через пробел:" />
+        <TabItem Header="Задание 2">
+            <views:SecondTabView />
+        </TabItem>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,8,0,8">
-            <TextBox Grid.Column="0"
-                     Name="InputBox"
-                     Text="1 1 2 3 5 8 13"
-                     Watermark="Например: 1 1 2 3 5 8 13"
-                     TextChanged="InputBox_OnTextChanged" />
-
-            <Button Grid.Column="1"
-                    Name="SortButton"
-                    Content="Отсортировать"
-                    Margin="8,0,0,0" />
-        </Grid>
-
-        <ScrollViewer Grid.Row="2"
-                      x:Name="SquaresScrollViewer"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Auto">
-            <Canvas x:Name="SquaresCanvas"
-                    MinHeight="120"
-                    VerticalAlignment="Top" />
-        </ScrollViewer>
-    </Grid>
+        <TabItem Header="Задание 3">
+            <views:ThirdTabView />
+        </TabItem>
+    </TabControl>
 </Window>

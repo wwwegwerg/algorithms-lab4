@@ -19,4 +19,28 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
     </ItemGroup>
+
+    <ItemGroup>
+        <AvaloniaXaml Update="App.axaml">
+            <SubType>Designer</SubType>
+        </AvaloniaXaml>
+        <AvaloniaXaml Update="MainWindow.axaml">
+            <SubType>Designer</SubType>
+        </AvaloniaXaml>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Views\SortingTabView.axaml.cs">
+        <DependentUpon>MainWindow.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\SecondTabView.axaml.cs">
+        <DependentUpon>SecondTabView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\ThirdTabView.axaml.cs">
+        <DependentUpon>ThirdTabView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+    </ItemGroup>
 </Project>
