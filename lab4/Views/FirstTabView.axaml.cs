@@ -8,13 +8,13 @@ using lab4.ViewModels;
 
 namespace lab4.Views;
 
-public partial class SortingTabView : UserControl {
+public partial class FirstTabView : UserControl {
     private bool _autoScrollEnabled = true;
     private bool _suppressAutoScrollToggleHandler;
 
     private SortingVisualizerViewModel ViewModel => (SortingVisualizerViewModel)DataContext!;
 
-    public SortingTabView() {
+    public FirstTabView() {
         InitializeComponent();
         DataContext = new SortingVisualizerViewModel();
         SubscribeToLogUpdates();

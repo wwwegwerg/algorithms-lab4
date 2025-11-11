@@ -6,7 +6,7 @@
         Title="Sorting Visualizer (Avalonia 11.3.8)">
     <TabControl>
         <TabItem Header="Задание 1">
-            <views:SortingTabView />
+            <views:FirstTabView />
         </TabItem>
 
         <TabItem Header="Задание 2">
