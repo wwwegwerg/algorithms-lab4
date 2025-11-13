@@ -1,5 +1,160 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="lab4.Views.SecondTabView">
-    <!-- Пусто по ТЗ -->
+             xmlns:viewModels="clr-namespace:lab4.ViewModels"
+             xmlns:models="clr-namespace:lab4.Models"
+             x:Class="lab4.Views.SecondTabView"
+             x:DataType="viewModels:ExternalSortingViewModel">
+    <Grid ColumnDefinitions="3*,2*" Margin="16">
+        <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0 0 12 0">
+            <StackPanel Grid.Row="0" Spacing="12">
+                <TextBlock Text="Внешнее слияние CSV" FontSize="18" FontWeight="Bold" />
+
+                <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Файл" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Content="Загрузить CSV"
+                                    Width="150"
+                                    Click="OnLoadCsvClick" />
+                            <TextBlock Text="{Binding LoadedFileName}"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"
+                                       Width="220" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding StatusMessage}" FontStyle="Italic" />
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="Алгоритм" VerticalAlignment="Center" />
+                            <ComboBox ItemsSource="{Binding AlgorithmOptions}"
+                                      SelectedValue="{Binding SelectedAlgorithm}"
+                                      SelectedValueBinding="{Binding Key}"
+                                      Width="260"
+                                      IsEnabled="{Binding CanChangeSettings}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Value}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="Ключ сортировки" VerticalAlignment="Center" />
+                            <ComboBox ItemsSource="{Binding ColumnHeaders}"
+                                      SelectedItem="{Binding SelectedColumnHeader}"
+                                      Width="260"
+                                      IsEnabled="{Binding CanChangeSettings}" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="Задержка" VerticalAlignment="Center" />
+                            <Slider Minimum="200" Maximum="2000"
+                                    TickFrequency="50"
+                                    IsSnapToTickEnabled="True"
+                                    Value="{Binding AnimationDelayMs}"
+                                    Width="200"
+                                    IsEnabled="{Binding CanControl}" />
+                            <TextBlock Text="{Binding AnimationDelayLabel}" Width="80" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Button Width="140"
+                                Content="{Binding PlayButtonLabel}"
+                                Click="OnPlayPauseClick"
+                                IsEnabled="{Binding CanControl}" />
+                        <Button Content="Шаг"
+                                Width="120"
+                                Click="OnStepClick"
+                                IsEnabled="{Binding HasPendingActions}" />
+                        <TextBlock Text="{Binding RemainingSteps, StringFormat='Осталось шагов: {0}'}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Border Grid.Row="1" Padding="12" CornerRadius="10" Background="#FFFFFF" BorderBrush="#E0E7FF"
+                    BorderThickness="1">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Текущая таблица" FontWeight="Bold" />
+                    <ItemsControl ItemsSource="{Binding ColumnHeaders}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="4" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="6 4" Background="#EEF2FF" CornerRadius="4" Margin="0 0 6 0">
+                                    <TextBlock Text="{Binding}" FontWeight="SemiBold" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Rows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="models:CsvRowVisual">
+                                    <Border Background="{Binding BackgroundBrush}"
+                                            BorderBrush="{Binding BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Margin="0 4"
+                                            Padding="8">
+                                        <TextBlock Text="{Binding DisplayText}"
+                                                   TextWrapping="Wrap"
+                                                   FontFamily="Consolas" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Column="1" Padding="12" Background="#F9FAFB" CornerRadius="10" BorderBrush="#E5E7EB"
+                BorderThickness="1">
+            <Grid RowDefinitions="Auto,*">
+                <Grid ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="Лог действий" FontWeight="Bold" FontSize="18" />
+                        <TextBlock Text="Сравнения и перемещения отображаются для понимания процесса" FontSize="12"
+                                   Foreground="#6B7280" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                        <ToggleSwitch x:Name="AutoScrollToggle"
+                                      Margin="0"
+                                      IsChecked="True"
+                                      Checked="OnAutoScrollToggleChecked"
+                                      Unchecked="OnAutoScrollToggleUnchecked"
+                                      VerticalAlignment="Center" />
+                        <TextBlock Text="Автопрокрутка" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+
+                <ListBox x:Name="LogListBox"
+                         Grid.Row="1"
+                         ItemsSource="{Binding LogEntries}"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         SelectionMode="Single"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"
+                                       Margin="0 2" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>
