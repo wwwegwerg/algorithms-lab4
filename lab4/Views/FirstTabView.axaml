@@ -48,18 +48,14 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <TextBlock Text="Скорость" VerticalAlignment="Center" />
-                        <Slider Minimum="0.25" Maximum="3"
-                                Value="{Binding AnimationSpeed}"
+                        <Slider Minimum="200" Maximum="2000"
+                                TickFrequency="50"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding AnimationDelayMs}"
                                 Width="200" />
-                        <TextBlock Text="{Binding AnimationSpeedLabel}" Width="50" />
+                        <TextBlock Text="{Binding AnimationDelayLabel}" VerticalAlignment="Center" Width="80" />
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="16">
-                        <CheckBox Content="Подсвечивать сравнения"
-                                  IsChecked="{Binding HighlightComparisons}" />
-                        <CheckBox Content="Подсвечивать обмены"
-                                  IsChecked="{Binding HighlightSwaps}" />
-                    </StackPanel>
                 </StackPanel>
             </Border>
 

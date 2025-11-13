@@ -14,9 +14,9 @@ public class SortingVisualizerViewModel : ViewModelBase {
     private Queue<SortAction> _pendingActions = new();
 
     private string _manualInput = string.Empty;
-    private bool _highlightComparisons = true;
-    private bool _highlightSwaps = true;
-    private double _animationSpeed = 1.0;
+    private const double MinDelayMs = 200;
+    private const double MaxDelayMs = 2000;
+    private double _animationDelayMs = 1200;
     private bool _isPlaying;
     private SortAlgorithm _selectedAlgorithm = SortAlgorithm.Bubble;
     private string _statusMessage = "Готов к визуализации";
@@ -62,30 +62,20 @@ public class SortingVisualizerViewModel : ViewModelBase {
         }
     }
 
-    public bool HighlightComparisons {
-        get => _highlightComparisons;
-        set => SetField(ref _highlightComparisons, value);
-    }
-
-    public bool HighlightSwaps {
-        get => _highlightSwaps;
-        set => SetField(ref _highlightSwaps, value);
-    }
-
-    public double AnimationSpeed {
-        get => _animationSpeed;
+    public double AnimationDelayMs {
+        get => _animationDelayMs;
         set {
-            var normalized = Math.Clamp(value, 0.25, 3.0);
-            if (!SetField(ref _animationSpeed, normalized)) {
+            var normalized = Math.Clamp(value, MinDelayMs, MaxDelayMs);
+            if (!SetField(ref _animationDelayMs, normalized)) {
                 return;
             }
 
             UpdateTimerInterval();
-            OnPropertyChanged(nameof(AnimationSpeedLabel));
+            OnPropertyChanged(nameof(AnimationDelayLabel));
         }
     }
 
-    public string AnimationSpeedLabel => $"{AnimationSpeed:0.0}x";
+    public string AnimationDelayLabel => $"{AnimationDelayMs:0} мс";
 
     public bool IsPlaying {
         get => _isPlaying;
@@ -220,16 +210,14 @@ public class SortingVisualizerViewModel : ViewModelBase {
     }
 
     private void ApplyComparison(SortAction action) {
-        if (HighlightComparisons) {
-            var first = GetItem(action.IndexA);
-            var second = GetItem(action.IndexB);
-            if (first != null) {
-                first.IsComparing = true;
-            }
+        var first = GetItem(action.IndexA);
+        var second = GetItem(action.IndexB);
+        if (first != null) {
+            first.IsComparing = true;
+        }
 
-            if (second != null) {
-                second.IsComparing = true;
-            }
+        if (second != null) {
+            second.IsComparing = true;
         }
 
         AddLog(action.Message, "Сравнение");
@@ -246,10 +234,8 @@ public class SortingVisualizerViewModel : ViewModelBase {
         var first = Items[firstIndex];
         var second = Items[secondIndex];
 
-        if (HighlightSwaps) {
-            first.IsSwapping = true;
-            second.IsSwapping = true;
-        }
+        first.IsSwapping = true;
+        second.IsSwapping = true;
 
         Items[firstIndex] = second;
         Items[secondIndex] = first;
@@ -364,7 +350,7 @@ public class SortingVisualizerViewModel : ViewModelBase {
     }
 
     private void UpdateTimerInterval() {
-        var delay = TimeSpan.FromMilliseconds(1200 / AnimationSpeed);
+        var delay = TimeSpan.FromMilliseconds(AnimationDelayMs);
         _timer.Interval = delay;
     }
 
