@@ -11,8 +11,9 @@ using lab4.Services;
 namespace lab4.ViewModels;
 
 public class ExternalSortingViewModel : ViewModelBase {
-    private const double MinDelayMs = 200;
+    private const double MinDelayMs = 50;
     private const double MaxDelayMs = 2000;
+    private const int BufferCapacity = 4;
 
     private readonly DispatcherTimer _timer;
     private readonly List<CsvRowData> _originalRows = new();
@@ -30,6 +31,7 @@ public class ExternalSortingViewModel : ViewModelBase {
 
     public ExternalSortingViewModel() {
         Rows = new ObservableCollection<CsvRowVisual>();
+        BufferRows = new ObservableCollection<CsvRowVisual>();
         ColumnHeaders = new ObservableCollection<string>();
         LogEntries = new ObservableCollection<string>();
         AlgorithmOptions = new List<KeyValuePair<ExternalMergeAlgorithm, string>> {
@@ -44,6 +46,8 @@ public class ExternalSortingViewModel : ViewModelBase {
     }
 
     public ObservableCollection<CsvRowVisual> Rows { get; }
+
+    public ObservableCollection<CsvRowVisual> BufferRows { get; }
 
     public ObservableCollection<string> ColumnHeaders { get; }
 
@@ -72,6 +76,8 @@ public class ExternalSortingViewModel : ViewModelBase {
                 AddLog($"Выбран алгоритм: {GetAlgorithmLabel(value)}");
                 PrepareActions();
             }
+
+            OnPropertyChanged(nameof(AlgorithmLabel));
         }
     }
 
@@ -120,6 +126,8 @@ public class ExternalSortingViewModel : ViewModelBase {
     public bool CanControl => HasFileLoaded;
 
     public bool CanLoadFile => !IsPlaying;
+
+    public string BufferHint => $"Буфер имитирует чтение максимум {BufferCapacity} строк.";
 
     public bool IsPlaying {
         get => _isPlaying;
@@ -290,6 +298,7 @@ public class ExternalSortingViewModel : ViewModelBase {
             }
         }
 
+        UpdateBuffer(action.RowIdA, action.RowIdB);
         AddLog(action.Message, "Сравнение");
     }
 
@@ -313,10 +322,12 @@ public class ExternalSortingViewModel : ViewModelBase {
         }
 
         row.IsMoving = true;
+        UpdateBuffer(action.RowIdA, action.RowIdB);
         AddLog(action.Message, "Перемещение");
     }
 
     private void ApplyPassComplete(ExternalSortAction action) {
+        BufferRows.Clear();
         AddLog(action.Message, "Проход");
         StatusMessage = action.Message;
     }
@@ -328,6 +339,7 @@ public class ExternalSortingViewModel : ViewModelBase {
             row.ClearStates();
         }
 
+        BufferRows.Clear();
         StatusMessage = string.IsNullOrWhiteSpace(action.Message)
             ? "Сортировка завершена"
             : action.Message;
@@ -341,12 +353,14 @@ public class ExternalSortingViewModel : ViewModelBase {
 
     private void PrepareActions() {
         if (!HasFileLoaded) {
+            BufferRows.Clear();
             _pendingActions = new Queue<ExternalSortAction>();
             UpdateActionsInfo();
             return;
         }
 
         ResetVisualRows();
+        BufferRows.Clear();
         ClearHighlights();
 
         var keyIndex = Math.Clamp(_selectedColumnIndex, 0, Math.Max(0, ColumnHeaders.Count - 1));
@@ -366,6 +380,7 @@ public class ExternalSortingViewModel : ViewModelBase {
 
     private void ResetVisualRows() {
         Rows.Clear();
+        BufferRows.Clear();
         _rowLookup.Clear();
         foreach (var row in _originalRows) {
             var visual = new CsvRowVisual(row.Id, row.Cells);
@@ -377,6 +392,27 @@ public class ExternalSortingViewModel : ViewModelBase {
     private void ClearHighlights() {
         foreach (var row in Rows) {
             row.ClearStates();
+        }
+
+        BufferRows.Clear();
+    }
+
+    private void UpdateBuffer(params int?[] rowIds) {
+        BufferRows.Clear();
+        if (rowIds == null || rowIds.Length == 0) {
+            return;
+        }
+
+        var ordered = rowIds
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .Distinct()
+            .Take(BufferCapacity);
+
+        foreach (var id in ordered) {
+            if (_rowLookup.TryGetValue(id, out var visual)) {
+                BufferRows.Add(visual);
+            }
         }
     }
 
@@ -416,6 +452,7 @@ public class ExternalSortingViewModel : ViewModelBase {
     private void ResetDataState() {
         _originalRows.Clear();
         Rows.Clear();
+        BufferRows.Clear();
         ColumnHeaders.Clear();
         _rowLookup.Clear();
         _pendingActions = new Queue<ExternalSortAction>();
