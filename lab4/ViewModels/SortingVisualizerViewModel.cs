@@ -14,7 +14,7 @@ public class SortingVisualizerViewModel : ViewModelBase {
     private Queue<SortAction> _pendingActions = new();
 
     private string _manualInput = string.Empty;
-    private const double MinDelayMs = 200;
+    private const double MinDelayMs = 50;
     private const double MaxDelayMs = 2000;
     private double _animationDelayMs = 1200;
     private bool _isPlaying;
@@ -393,12 +393,6 @@ public class SortingVisualizerViewModel : ViewModelBase {
 
         if (values.Count < 2) {
             error = "Для визуализации нужны минимум два элемента.";
-            values.Clear();
-            return false;
-        }
-
-        if (values.Count > 16) {
-            error = "Пожалуйста, введите не больше 16 чисел.";
             values.Clear();
             return false;
         }
