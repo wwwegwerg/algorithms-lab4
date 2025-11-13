@@ -119,6 +119,8 @@ public class ExternalSortingViewModel : ViewModelBase {
 
     public bool CanControl => HasFileLoaded;
 
+    public bool CanLoadFile => !IsPlaying;
+
     public bool IsPlaying {
         get => _isPlaying;
         private set {
@@ -127,6 +129,7 @@ public class ExternalSortingViewModel : ViewModelBase {
             }
 
             OnPropertyChanged(nameof(CanChangeSettings));
+            OnPropertyChanged(nameof(CanLoadFile));
             OnPropertyChanged(nameof(PlayButtonLabel));
         }
     }
