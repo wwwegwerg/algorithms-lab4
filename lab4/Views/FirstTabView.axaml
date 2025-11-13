@@ -4,92 +4,32 @@
              xmlns:models="clr-namespace:lab4.Models"
              x:Class="lab4.Views.FirstTabView"
              x:DataType="viewModels:SortingVisualizerViewModel">
-    <Grid ColumnDefinitions="3*,2*" RowDefinitions="Auto,*" Margin="16">
-        <!-- Панель настроек -->
-        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0 0 12 0" Spacing="12">
-            <TextBlock Text="Настройки визуализации" FontWeight="Bold" FontSize="18" />
-
-            <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Данные для сортировки" />
-                    <TextBox Text="{Binding ManualInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             IsEnabled="{Binding CanEditArray}"
-                             Watermark="Например: 8 2 5 1 9"
-                             AcceptsReturn="True"
-                             TextWrapping="Wrap"
-                             MinHeight="60" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Content="Применить массив"
-                                Click="OnApplyArrayClick"
-                                IsEnabled="{Binding CanEditArray}" />
-                        <Button Content="Случайный массив"
-                                Click="OnRandomizeClick"
-                                IsEnabled="{Binding CanEditArray}" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
-            <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
-                <StackPanel Spacing="10">
-                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <TextBlock Text="Алгоритм" VerticalAlignment="Center" />
-                        <ComboBox ItemsSource="{Binding AlgorithmOptions}"
-                                  SelectedValue="{Binding SelectedAlgorithm}"
-                                  SelectedValueBinding="{Binding Key}"
-                                  Width="260"
-                                  IsEnabled="{Binding CanEditArray}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Value}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <TextBlock Text="Скорость" VerticalAlignment="Center" />
-                        <Slider Minimum="200" Maximum="2000"
-                                TickFrequency="50"
-                                IsSnapToTickEnabled="True"
-                                Value="{Binding AnimationDelayMs}"
-                                Width="200" />
-                        <TextBlock Text="{Binding AnimationDelayLabel}" VerticalAlignment="Center" Width="80" />
-                    </StackPanel>
-
-                </StackPanel>
-            </Border>
-
-            <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <Button Width="140"
-                            Content="{Binding PlayButtonLabel}"
-                            Click="OnPlayPauseClick" />
-                    <Button Content="Шаг"
-                            Width="120"
-                            Click="OnStepClick"
-                            IsEnabled="{Binding HasPendingActions}" />
-                    <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" TextWrapping="Wrap"
-                               Width="260" />
-                </StackPanel>
-            </Border>
-
-            <TextBlock Text="{Binding RemainingSteps, StringFormat='Осталось шагов: {0}'}" FontStyle="Italic" />
-        </StackPanel>
-
-        <!-- Массив -->
-        <Border Grid.Row="1" Grid.Column="0" Margin="0 0 12 0" Padding="12" Background="#FFFFFF" CornerRadius="10"
-                BorderBrush="#E0E7FF" BorderThickness="1">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding Items}">
+    <Grid ColumnDefinitions="*,360" Margin="16">
+        <!-- Окно визуализации -->
+        <Border Grid.Column="0"
+                Margin="0 0 12 0"
+                Padding="16"
+                Background="#FFFFFF"
+                CornerRadius="10"
+                BorderBrush="#E0E7FF"
+                BorderThickness="1">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Items}"
+                              HorizontalAlignment="Center">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" />
+                            <WrapPanel Orientation="Horizontal"
+                                       HorizontalAlignment="Center" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="models:VisualArrayItem">
-                            <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                <Border Width="56" Height="56" CornerRadius="8" BorderThickness="2"
+                            <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="4">
+                                <Border Width="56"
+                                        Height="56"
+                                        CornerRadius="8"
+                                        BorderThickness="2"
                                         Background="{Binding BackgroundBrush}"
                                         BorderBrush="{Binding BorderBrush}">
                                     <TextBlock Text="{Binding Value}"
@@ -105,43 +45,146 @@
             </ScrollViewer>
         </Border>
 
-        <!-- Лог -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="12 0 0 0" Padding="12" Background="#F9FAFB"
-                CornerRadius="10" BorderBrush="#E5E7EB" BorderThickness="1">
-            <Grid RowDefinitions="Auto,*">
-                <Grid Margin="0 0 0 8" ColumnDefinitions="*,Auto">
-                    <TextBlock Grid.Column="0"
-                               Text="Лог действий"
-                               FontWeight="Bold"
-                               FontSize="18"
-                               VerticalAlignment="Center" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                        <ToggleSwitch x:Name="AutoScrollToggle"
-                                      Margin="0"
-                                      IsChecked="True"
-                                      Checked="OnAutoScrollToggleChecked"
-                                      Unchecked="OnAutoScrollToggleUnchecked"
-                                      OnContent=""
-                                      OffContent=""
-                                      VerticalAlignment="Center" />
-                        <TextBlock Text="Автопрокрутка" VerticalAlignment="Center" />
+        <!-- Сайдбар -->
+        <Grid Grid.Column="1"
+              Margin="12 0 0 0"
+              RowDefinitions="Auto,*"
+              RowSpacing="12">
+            <StackPanel Grid.Row="0" Spacing="12">
+                <TextBlock Text="Настройки визуализации"
+                           FontWeight="Bold"
+                           FontSize="18"
+                           Margin="0 0 0 8" />
+
+                <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Данные для сортировки" />
+                        <TextBox Text="{Binding ManualInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 IsEnabled="{Binding CanEditArray}"
+                                 Watermark="Например: 8 2 5 1 9"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Height="60"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="Применить массив"
+                                    Click="OnApplyArrayClick"
+                                    IsEnabled="{Binding CanEditArray}" />
+                            <Button Content="Случайный массив"
+                                    Click="OnRandomizeClick"
+                                    IsEnabled="{Binding CanEditArray}" />
+                        </StackPanel>
                     </StackPanel>
+                </Border>
+
+                <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
+                                <TextBlock Text="Алгоритм"
+                                           VerticalAlignment="Center" />
+                                <ComboBox Grid.Column="1"
+                                          Margin="12 0 0 0"
+                                          ItemsSource="{Binding AlgorithmOptions}"
+                                          SelectedValue="{Binding SelectedAlgorithm}"
+                                          SelectedValueBinding="{Binding Key}"
+                                          HorizontalAlignment="Stretch"
+                                          IsEnabled="{Binding CanEditArray}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Value}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                <TextBlock Text="Скорость"
+                                           VerticalAlignment="Center" />
+                                <Slider Grid.Column="1"
+                                        Margin="12 0"
+                                        Minimum="50"
+                                        Maximum="2000"
+                                        TickFrequency="50"
+                                        IsSnapToTickEnabled="True"
+                                        Value="{Binding AnimationDelayMs}" />
+                                <TextBlock Grid.Column="2"
+                                           Margin="12 0 0 0"
+                                           Text="{Binding AnimationDelayLabel}"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Button Content="{Binding PlayButtonLabel}"
+                                        Click="OnPlayPauseClick" />
+                                <Button Content="Шаг"
+                                        Click="OnStepClick"
+                                        IsEnabled="{Binding HasPendingActions}" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding StatusMessage}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding RemainingSteps, StringFormat='Осталось шагов: {0}'}"
+                           FontStyle="Italic" />
+
+            </StackPanel>
+
+            <Border Grid.Row="1"
+                    Margin="0"
+                    Padding="12"
+                    Background="#F9FAFB"
+                    CornerRadius="10"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <Grid RowDefinitions="Auto,*">
+                    <Grid Margin="0 0 0 8" ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="Лог действий"
+                                   FontWeight="Bold"
+                                   FontSize="18"
+                                   VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="4"
+                                    VerticalAlignment="Center">
+                            <ToggleSwitch x:Name="AutoScrollToggle"
+                                          Margin="0"
+                                          IsChecked="True"
+                                          Checked="OnAutoScrollToggleChecked"
+                                          Unchecked="OnAutoScrollToggleUnchecked"
+                                          OnContent=""
+                                          OffContent=""
+                                          VerticalAlignment="Center" />
+                            <TextBlock Text="Автопрокрутка"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                    <ScrollViewer x:Name="LogScrollViewer"
+                                  Grid.Row="1"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ListBox x:Name="LogListBox"
+                                 ItemsSource="{Binding LogEntries}"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 SelectionMode="Single">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}"
+                                               FontFamily="Consolas"
+                                               FontSize="12"
+                                               TextWrapping="Wrap"
+                                               Margin="0 2" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
                 </Grid>
-                <ListBox x:Name="LogListBox"
-                         Grid.Row="1"
-                         ItemsSource="{Binding LogEntries}"
-                         BorderThickness="0"
-                         Background="Transparent"
-                         SelectionMode="Single"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"
-                                       Margin="0 2" />
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </Grid>
-        </Border>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
