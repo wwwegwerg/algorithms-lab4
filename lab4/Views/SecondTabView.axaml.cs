@@ -1,8 +1,12 @@
+using System;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using lab4.ViewModels;
 
@@ -23,25 +27,32 @@ public partial class SecondTabView : UserControl {
     }
 
     private async void OnLoadCsvClick(object? sender, RoutedEventArgs e) {
-        var window = TopLevel.GetTopLevel(this) as Window;
-        if (window == null) {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.StorageProvider == null) {
             return;
         }
 
-        var dialog = new OpenFileDialog {
+        var options = new FilePickerOpenOptions {
+            Title = "Выберите CSV-файл",
             AllowMultiple = false,
-            Filters = {
-                new FileDialogFilter { Name = "CSV файлы", Extensions = { "csv" } },
-                new FileDialogFilter { Name = "Все файлы", Extensions = { "*" } }
+            FileTypeFilter = new[] {
+                new FilePickerFileType("CSV файлы") { Patterns = new[] { "*.csv" } },
+                FilePickerFileTypes.All
             }
         };
 
-        var files = await dialog.ShowAsync(window);
-        if (files == null || files.Length == 0) {
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(options);
+        var file = files.FirstOrDefault();
+        if (file == null) {
             return;
         }
 
-        ViewModel.LoadFromFile(files[0]);
+        var path = await EnsureLocalPathAsync(file);
+        if (string.IsNullOrWhiteSpace(path)) {
+            return;
+        }
+
+        ViewModel.LoadFromFile(path);
     }
 
     private void OnPlayPauseClick(object? sender, RoutedEventArgs e) => ViewModel.TogglePlayPause();
@@ -129,5 +140,18 @@ public partial class SecondTabView : UserControl {
         }
 
         _autoScrollEnabled = false;
+    }
+
+    private static async Task<string?> EnsureLocalPathAsync(IStorageFile file) {
+        var uriPath = file.Path?.LocalPath;
+        if (!string.IsNullOrWhiteSpace(uriPath)) {
+            return Uri.UnescapeDataString(uriPath);
+        }
+
+        var tempPath = Path.Combine(Path.GetTempPath(), $"csv_{Guid.NewGuid():N}_{file.Name}");
+        await using var sourceStream = await file.OpenReadAsync();
+        await using var destinationStream = File.Create(tempPath);
+        await sourceStream.CopyToAsync(destinationStream);
+        return tempPath;
     }
 }
