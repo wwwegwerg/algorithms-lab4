@@ -1,5 +1,5 @@
 using System;
-using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using lab4.ViewModels;
@@ -21,11 +21,15 @@ public partial class ThirdTabView : UserControl {
         _sortingViewModel.RunSorting();
     }
 
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e) {
+        base.OnAttachedToVisualTree(e);
+        RefreshBenchmarkWebView();
+    }
+
     private async void OnTabSelectionChanged(object? sender, SelectionChangedEventArgs e) {
         var isBenchmarkTab = BenchmarkTab == (sender as TabControl)?.SelectedItem;
-        if (isBenchmarkTab && _benchmarkViewModel.HasChart) {
-            _benchmarkViewModel.RefreshChart(); // заставляем биндинг обновить Url
-            // ReloadBenchmarkWebView();
+        if (isBenchmarkTab) {
+            RefreshBenchmarkWebView();
         }
 
         if (_benchmarkStarted || !isBenchmarkTab) {
@@ -33,22 +37,23 @@ public partial class ThirdTabView : UserControl {
         }
 
         _benchmarkStarted = true;
-        await StartBenchmarkAsync();
+        var q = await _benchmarkViewModel.RunBenchmarkAsync();
+        if (!string.IsNullOrWhiteSpace(q)) {
+            BenchmarkWebView.Url = new Uri(q);
+        }
     }
 
-    private Task StartBenchmarkAsync() {
-        return _benchmarkViewModel.RunBenchmarkAsync();
-    }
-
-    private void ReloadBenchmarkWebView() {
-        if (!_benchmarkViewModel.HasChart || string.IsNullOrWhiteSpace(_benchmarkViewModel.ChartUrl)) {
+    private void RefreshBenchmarkWebView() {
+        if (!_benchmarkViewModel.HasChart || !BenchmarkTab.IsSelected) {
             return;
         }
 
-        // var uri = new Uri(_benchmarkViewModel.ChartUrl);
-        // Console.WriteLine("ReloadBenchmarkWebView: " + uri);
-        // BenchmarkWebView.Url = uri;
+        var url = _benchmarkViewModel.ChartFilePath;
+        if (string.IsNullOrWhiteSpace(url)) {
+            return;
+        }
+
+        BenchmarkWebView.Url = new Uri(url);
         BenchmarkWebView.Reload();
     }
-
 }

@@ -14,7 +14,6 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
     // private static readonly int[] SampleSizes = [100, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000];
     private static readonly int[] SampleSizes = [100, 500, 1_000, 2_000, 5_000];
     private string _statusMessage = "Здесь появится сравнение Quick sort и Radix sort.";
-    private string? _chartUrl;
     private string? _chartFilePath;
     private bool _isRunning;
 
@@ -23,25 +22,18 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
         private set => SetField(ref _statusMessage, value);
     }
 
-    public string? ChartUrl {
-        get => _chartUrl;
-        private set {
-            if (SetField(ref _chartUrl, value)) {
-                OnPropertyChanged(nameof(HasChart));
-            }
-        }
-    }
+    public string? ChartFilePath => _chartFilePath;
 
-    public bool HasChart => !string.IsNullOrWhiteSpace(ChartUrl);
+    public bool HasChart => !string.IsNullOrWhiteSpace(_chartFilePath) && _chartFilePath.Length > 0;
 
     public bool IsRunning {
         get => _isRunning;
         private set => SetField(ref _isRunning, value);
     }
 
-    public async Task RunBenchmarkAsync() {
+    public async Task<string> RunBenchmarkAsync() {
         if (IsRunning) {
-            return;
+            return "";
         }
 
         try {
@@ -60,22 +52,19 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
             }
 
             StatusMessage = "Выполняем замеры...";
-            var result = await Task.Run(() => BuildChart(allWords));
 
-            _chartFilePath = result.ChartFilePath;
-            Console.WriteLine("изначальная загрузка _chartFilePath: " + _chartFilePath);
-            ChartUrl = new Uri(_chartFilePath).AbsoluteUri;
-            Console.WriteLine("изначальная загрузка ChartUrl: " + ChartUrl);
+            _chartFilePath = await Task.Run(() => BuildChart(allWords));
             StatusMessage = "Готово.";
         } catch (Exception ex) {
-            ChartUrl = null;
             StatusMessage = $"Ошибка: {ex.Message}";
         } finally {
             IsRunning = false;
         }
+
+        return _chartFilePath ?? "";
     }
 
-    private static BenchmarkResult BuildChart(IReadOnlyList<string> allWords) {
+    private static string BuildChart(IReadOnlyList<string> allWords) {
         var quickSortPoints = new List<DataPoint>();
         var radixSortPoints = new List<DataPoint>();
         var sw = Stopwatch.StartNew();
@@ -102,7 +91,7 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
         );
 
         var chartPath = ChartBuilder.Build2DLineChart(chartData, promptOnOverwrite: false);
-        return new BenchmarkResult(chartPath);
+        return chartPath;
     }
 
     private static double MeasureSort(IReadOnlyList<string> source, WordSortAlgorithm algorithm) {
@@ -114,14 +103,4 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
         Benchmark.Warmup(SortAction, warmupCount: 1);
         return Benchmark.MeasureDurationInMs(SortAction, repetitionCount: 3);
     }
-
-    public void RefreshChart() {
-        if (string.IsNullOrWhiteSpace(_chartFilePath)) {
-            return;
-        }
-        Console.WriteLine("RefreshChart: " + new Uri(_chartFilePath).AbsoluteUri);
-        ChartUrl = new Uri(_chartFilePath).AbsoluteUri;
-    }
-
-    private sealed record BenchmarkResult(string ChartFilePath);
 }
