@@ -18,6 +18,9 @@
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="Plotly.NET.CSharp" Version="0.13.0" />
+        <PackageReference Include="WebView.Avalonia" Version="11.0.0.1" />
+        <PackageReference Include="WebView.Avalonia.Desktop" Version="11.0.0.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -42,5 +45,11 @@
         <DependentUpon>ThirdTabView.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="task3.input/words.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 </Project>

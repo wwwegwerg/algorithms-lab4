@@ -2,9 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:viewModels="clr-namespace:lab4.ViewModels"
              xmlns:models="clr-namespace:lab4.Models"
+             xmlns:webview="clr-namespace:AvaloniaWebView;assembly=Avalonia.WebView"
              x:Class="lab4.Views.ThirdTabView"
              x:DataType="viewModels:WordSortingViewModel">
-    <TabControl>
+    <TabControl SelectionChanged="OnTabSelectionChanged">
         <TabItem Header="Вкладка 1">
             <Grid ColumnDefinitions="*,360" Margin="16">
                 <Border Grid.Column="0"
@@ -137,17 +138,22 @@
             </Grid>
         </TabItem>
 
-        <TabItem Header="Вкладка 2">
-            <Border Margin="16"
-                    Padding="24"
-                    Background="#FFFFFF"
-                    CornerRadius="10"
-                    BorderBrush="#E0E7FF"
-                    BorderThickness="1">
-                <TextBlock Text="Эта вкладка зарезервирована под вторую программу для третьего задания."
+        <TabItem x:Name="BenchmarkTab" Header="Вкладка 2"
+                 x:DataType="viewModels:WordSortBenchmarkViewModel">
+
+            <Grid x:Name="BenchmarkRoot"
+                  RowDefinitions="Auto,*"
+                  RowSpacing="8">
+                <TextBlock Text="{Binding StatusMessage}"
                            TextWrapping="Wrap"
-                           FontSize="16" />
-            </Border>
+                           Margin="0 0 0 4" />
+                <webview:WebView Grid.Row="1"
+                                 x:Name="BenchmarkWebView"
+                                 Url="{Binding ChartUrl}"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Stretch" />
+            </Grid>
+
         </TabItem>
     </TabControl>
 </UserControl>
