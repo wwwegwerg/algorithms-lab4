@@ -12,12 +12,12 @@ public static class ExternalMergeEngines {
         ExternalMergeAlgorithm algorithm,
         int keyColumnIndex,
         string columnLabel) {
-        if (rows == null || rows.Count == 0) {
-            return new[] {
+        if (rows.Count == 0) {
+            return [
                 new ExternalSortAction(
                     ExternalSortActionType.Finished,
                     message: "Нет данных для сортировки")
-            };
+            ];
         }
 
         var normalizedKeyIndex = Math.Max(0, keyColumnIndex);
@@ -109,30 +109,29 @@ public static class ExternalMergeEngines {
         var n = order.Count;
         var runSize = 1;
         var passNumber = 1;
-        const int FanIn = 3;
+        const int fanIn = 3;
 
         while (runSize < n) {
-            for (var start = 0; start < n; start += FanIn * runSize) {
-                var firstStart = start;
-                var firstEnd = Math.Min(firstStart + runSize, n);
+            for (var start = 0; start < n; start += fanIn * runSize) {
+                var firstEnd = Math.Min(start + runSize, n);
                 var secondEnd = Math.Min(firstEnd + runSize, n);
                 var thirdEnd = Math.Min(secondEnd + runSize, n);
 
-                if (firstEnd > firstStart && secondEnd > firstEnd) {
-                    MergeRuns(order, lookup, firstStart, firstEnd, secondEnd, keyColumnIndex, columnLabel, actions);
+                if (firstEnd > start && secondEnd > firstEnd) {
+                    MergeRuns(order, lookup, start, firstEnd, secondEnd, keyColumnIndex, columnLabel, actions);
                 }
 
                 if (thirdEnd > secondEnd) {
-                    MergeRuns(order, lookup, firstStart, secondEnd, thirdEnd, keyColumnIndex, columnLabel, actions);
+                    MergeRuns(order, lookup, start, secondEnd, thirdEnd, keyColumnIndex, columnLabel, actions);
                 }
             }
 
             actions.Add(new ExternalSortAction(
                 ExternalSortActionType.PassComplete,
-                message: $"Многопутевой проход #{passNumber}: серия ×{FanIn}",
+                message: $"Многопутевой проход #{passNumber}: серия ×{fanIn}",
                 passNumber: passNumber));
             passNumber++;
-            runSize *= FanIn;
+            runSize *= fanIn;
         }
 
         actions.Add(new ExternalSortAction(

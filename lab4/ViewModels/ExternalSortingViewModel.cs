@@ -16,7 +16,7 @@ public class ExternalSortingViewModel : ViewModelBase {
     private const int BufferCapacity = 4;
 
     private readonly DispatcherTimer _timer;
-    private readonly List<CsvRowData> _originalRows = new();
+    private readonly List<CsvRowData> _originalRows = [];
     private readonly Dictionary<int, CsvRowVisual> _rowLookup = new();
     private Queue<ExternalSortAction> _pendingActions = new();
 
@@ -30,10 +30,10 @@ public class ExternalSortingViewModel : ViewModelBase {
     private bool _suppressColumnChange;
 
     public ExternalSortingViewModel() {
-        Rows = new ObservableCollection<CsvRowVisual>();
-        BufferRows = new ObservableCollection<CsvRowVisual>();
-        ColumnHeaders = new ObservableCollection<string>();
-        LogEntries = new ObservableCollection<string>();
+        Rows = [];
+        BufferRows = [];
+        ColumnHeaders = [];
+        LogEntries = [];
         AlgorithmOptions = new List<KeyValuePair<ExternalMergeAlgorithm, string>> {
             new(ExternalMergeAlgorithm.StraightMerge, "Прямое слияние"),
             new(ExternalMergeAlgorithm.NaturalMerge, "Естественное слияние"),
@@ -129,9 +129,9 @@ public class ExternalSortingViewModel : ViewModelBase {
 
     public string BufferHint => $"Буфер имитирует чтение максимум {BufferCapacity} строк.";
 
-    public bool IsPlaying {
+    private bool IsPlaying {
         get => _isPlaying;
-        private set {
+        set {
             if (!SetField(ref _isPlaying, value)) {
                 return;
             }
@@ -220,7 +220,7 @@ public class ExternalSortingViewModel : ViewModelBase {
         ProcessNextAction();
     }
 
-    public void Pause() {
+    private void Pause() {
         if (_timer.IsEnabled) {
             _timer.Stop();
         }
@@ -422,7 +422,7 @@ public class ExternalSortingViewModel : ViewModelBase {
 
     private void RebuildHeaders(IReadOnlyList<string> headerRow, IReadOnlyCollection<IReadOnlyList<string>> dataRows) {
         ColumnHeaders.Clear();
-        var headers = headerRow?.ToList() ?? new List<string>();
+        var headers = headerRow?.ToList() ?? [];
         if (headers.Count == 0) {
             var maxColumns = dataRows.Any() ? dataRows.Max(r => r.Count) : 0;
             for (var i = 0; i < maxColumns; i++) {

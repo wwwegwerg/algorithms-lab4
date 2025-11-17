@@ -14,7 +14,6 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
     // private static readonly int[] SampleSizes = [100, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000];
     private static readonly int[] SampleSizes = [100, 500, 1_000, 2_000, 5_000];
     private string _statusMessage = "Здесь появится сравнение Quick sort и Radix sort.";
-    private string? _chartFilePath;
     private bool _isRunning;
 
     public string StatusMessage {
@@ -22,9 +21,9 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
         private set => SetField(ref _statusMessage, value);
     }
 
-    public string? ChartFilePath => _chartFilePath;
+    public string? ChartFilePath { get; private set; }
 
-    public bool HasChart => !string.IsNullOrWhiteSpace(_chartFilePath) && _chartFilePath.Length > 0;
+    public bool HasChart => !string.IsNullOrWhiteSpace(ChartFilePath) && ChartFilePath.Length > 0;
 
     private bool IsRunning {
         get => _isRunning;
@@ -53,7 +52,7 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
 
             StatusMessage = "Выполняем замеры...";
 
-            _chartFilePath = await Task.Run(() => BuildChart(allWords));
+            ChartFilePath = await Task.Run(() => BuildChart(allWords));
             StatusMessage = "Готово.";
         } catch (Exception ex) {
             StatusMessage = $"Ошибка: {ex.Message}";
@@ -93,12 +92,12 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
     }
 
     private static double MeasureSort(IReadOnlyList<string> source, WordSortAlgorithm algorithm) {
+        Benchmark.Warmup(SortAction, warmupCount: 1);
+        return Benchmark.MeasureDurationInMs(SortAction, repetitionCount: 3);
+
         void SortAction() {
             var copy = new List<string>(source);
             WordSortingService.SortWords(copy, algorithm);
         }
-
-        Benchmark.Warmup(SortAction, warmupCount: 1);
-        return Benchmark.MeasureDurationInMs(SortAction, repetitionCount: 3);
     }
 }

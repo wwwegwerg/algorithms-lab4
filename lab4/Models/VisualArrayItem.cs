@@ -92,7 +92,7 @@ public class VisualArrayItem : INotifyPropertyChanged {
         UpdateVisualState();
     }
 
-    protected bool SetField<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null) {
+    private bool SetField<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null) {
         if (Equals(storage, value)) {
             return false;
         }

@@ -2,11 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:viewModels="clr-namespace:lab4.ViewModels"
              xmlns:models="clr-namespace:lab4.Models"
-             xmlns:webview="clr-namespace:AvaloniaWebView;assembly=Avalonia.WebView"
              x:Class="lab4.Views.ThirdTabView"
              x:DataType="viewModels:WordSortingViewModel">
     <TabControl SelectionChanged="OnTabSelectionChanged">
-        <TabItem Header="Вкладка 1">
+        <TabItem Header="Сортировка слов">
             <Grid ColumnDefinitions="*,360" Margin="16">
                 <Border Grid.Column="0"
                         Margin="0 0 12 0"
@@ -138,7 +137,7 @@
             </Grid>
         </TabItem>
 
-        <TabItem x:Name="BenchmarkTab" Header="Вкладка 2"
+        <TabItem x:Name="BenchmarkTab" Header="График"
                  x:DataType="viewModels:WordSortBenchmarkViewModel">
 
             <Grid x:Name="BenchmarkRoot"

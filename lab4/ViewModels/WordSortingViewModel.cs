@@ -17,17 +17,13 @@ public class WordSortingViewModel : ViewModelBase {
     private TimeSpan _lastDuration = TimeSpan.Zero;
     private int _wordCount;
 
-    public WordSortingViewModel() {
-        AlgorithmOptions = new List<KeyValuePair<WordSortAlgorithm, string>> {
+    public ObservableCollection<WordFrequency> WordFrequencies { get; } = [];
+
+    public IReadOnlyList<KeyValuePair<WordSortAlgorithm, string>> AlgorithmOptions { get; } =
+        new List<KeyValuePair<WordSortAlgorithm, string>> {
             new(WordSortAlgorithm.QuickSort, "Quick sort"),
             new(WordSortAlgorithm.RadixSort, "Radix sort")
         };
-        WordFrequencies = new ObservableCollection<WordFrequency>();
-    }
-
-    public ObservableCollection<WordFrequency> WordFrequencies { get; }
-
-    public IReadOnlyList<KeyValuePair<WordSortAlgorithm, string>> AlgorithmOptions { get; }
 
     public string InputText {
         get => _inputText;
@@ -44,9 +40,9 @@ public class WordSortingViewModel : ViewModelBase {
         private set => SetField(ref _statusMessage, value);
     }
 
-    public bool HasResults {
+    private bool HasResults {
         get => _hasResults;
-        private set => SetField(ref _hasResults, value);
+        set => SetField(ref _hasResults, value);
     }
 
     public string SortedWordsPreview {

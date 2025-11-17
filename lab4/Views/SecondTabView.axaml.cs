@@ -35,10 +35,10 @@ public partial class SecondTabView : UserControl {
         var options = new FilePickerOpenOptions {
             Title = "Выберите CSV-файл",
             AllowMultiple = false,
-            FileTypeFilter = new[] {
-                new FilePickerFileType("CSV файлы") { Patterns = new[] { "*.csv" } },
+            FileTypeFilter = [
+                new FilePickerFileType("CSV файлы") { Patterns = ["*.csv"] },
                 FilePickerFileTypes.All
-            }
+            ]
         };
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(options);

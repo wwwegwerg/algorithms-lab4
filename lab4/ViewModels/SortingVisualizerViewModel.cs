@@ -24,8 +24,8 @@ public class SortingVisualizerViewModel : ViewModelBase {
     private const string ValidArrayRequiredMessage = "Сначала примените корректный массив.";
 
     public SortingVisualizerViewModel() {
-        Items = new ObservableCollection<VisualArrayItem>();
-        LogEntries = new ObservableCollection<string>();
+        Items = [];
+        LogEntries = [];
         AlgorithmOptions = new List<KeyValuePair<SortAlgorithm, string>> {
             new(SortAlgorithm.Bubble, "Bubble sort"),
             new(SortAlgorithm.Insertion, "Insertion sort"),
@@ -79,9 +79,9 @@ public class SortingVisualizerViewModel : ViewModelBase {
 
     public string AnimationDelayLabel => $"{AnimationDelayMs:0} мс";
 
-    public bool IsPlaying {
+    private bool IsPlaying {
         get => _isPlaying;
-        private set {
+        set {
             if (!SetField(ref _isPlaying, value)) {
                 return;
             }
@@ -96,9 +96,9 @@ public class SortingVisualizerViewModel : ViewModelBase {
 
     public bool CanEditArray => !IsPlaying;
 
-    public bool HasValidArray {
+    private bool HasValidArray {
         get => _hasValidArray;
-        private set {
+        set {
             if (!SetField(ref _hasValidArray, value)) {
                 return;
             }
@@ -204,7 +204,7 @@ public class SortingVisualizerViewModel : ViewModelBase {
         StatusMessage = "Анимация запущена";
     }
 
-    public void Pause() {
+    private void Pause() {
         if (!_timer.IsEnabled) {
             IsPlaying = false;
             return;
@@ -415,7 +415,7 @@ public class SortingVisualizerViewModel : ViewModelBase {
     }
 
     private static bool TryParseManualInput(string input, out List<int> values, out string error) {
-        values = new List<int>();
+        values = [];
         error = string.Empty;
 
         if (string.IsNullOrWhiteSpace(input)) {
@@ -424,7 +424,7 @@ public class SortingVisualizerViewModel : ViewModelBase {
         }
 
         var parts = input
-            .Split(new[] { ' ', ',', ';', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            .Split([' ', ',', ';', '\n', '\r', '\t'], StringSplitOptions.RemoveEmptyEntries);
         foreach (var part in parts) {
             if (!int.TryParse(part, out var number)) {
                 error = $"Не удалось распознать \"{part}\" как целое число.";
@@ -435,13 +435,14 @@ public class SortingVisualizerViewModel : ViewModelBase {
             values.Add(number);
         }
 
-        if (values.Count < 2) {
-            error = "Для визуализации нужны минимум два элемента.";
-            values.Clear();
-            return false;
+        if (values.Count >= 2) {
+            return true;
         }
 
-        return true;
+        error = "Для визуализации нужны минимум два элемента.";
+        values.Clear();
+        return false;
+
     }
 
     private string GetAlgorithmLabel(SortAlgorithm algorithm) =>

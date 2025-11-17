@@ -12,7 +12,7 @@ public static class WordSortingService {
 
     public static List<string> ExtractWords(string? source) {
         if (string.IsNullOrWhiteSpace(source)) {
-            return new List<string>();
+            return [];
         }
 
         return WordRegex
@@ -25,7 +25,7 @@ public static class WordSortingService {
     public static List<string> SortWords(IEnumerable<string>? source, WordSortAlgorithm algorithm) {
         var data = source?.Where(word => !string.IsNullOrWhiteSpace(word))
             .Select(NormalizeWord)
-            .ToList() ?? new List<string>();
+            .ToList() ?? [];
 
         if (data.Count <= 1) {
             return data;

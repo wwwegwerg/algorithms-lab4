@@ -7,9 +7,10 @@ namespace lab4.Services;
 
 public static class SortingEngines {
     public static IReadOnlyList<SortAction> BuildActions(int[] source, SortAlgorithm algorithm) {
-        var prepared = source?.ToArray() ?? Array.Empty<int>();
+        var prepared = source?.ToArray() ?? [];
         if (prepared.Length == 0) {
-            return new List<SortAction> { new(SortActionType.Finished, message: "Массив пуст — сортировка не требуется") };
+            return new List<SortAction>
+                { new(SortActionType.Finished, message: "Массив пуст — сортировка не требуется") };
         }
 
         var steps = algorithm switch {
@@ -28,6 +29,7 @@ public static class SortingEngines {
         var n = array.Length;
 
         for (var i = 0; i < n; i++) {
+            var swapped = false;
             for (var j = 0; j < n - i - 1; j++) {
                 actions.Add(new SortAction(
                     SortActionType.Compare,
@@ -44,6 +46,8 @@ public static class SortingEngines {
                 var left = array[j];
                 var right = array[j + 1];
                 (array[j], array[j + 1]) = (right, left);
+                swapped = true;
+
                 actions.Add(new SortAction(
                     SortActionType.Swap,
                     j,
@@ -57,6 +61,15 @@ public static class SortingEngines {
                 SortActionType.PassComplete,
                 n - i - 1,
                 message: $"Правый край (индекс {n - i - 1}) упорядочен"));
+
+            if (swapped) {
+                continue;
+            }
+
+            actions.Add(new SortAction(
+                SortActionType.Finished,
+                message: "За проход не было обменов, массив уже отсортирован"));
+            return actions;
         }
 
         actions.Add(new SortAction(SortActionType.Finished, message: "Пузырёк завершён"));

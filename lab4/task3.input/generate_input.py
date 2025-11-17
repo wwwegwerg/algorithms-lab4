@@ -25,7 +25,7 @@ word_pool = list(dict.fromkeys(word_pool + extras))
 text = " ".join(random.choice(word_pool) for _ in range(n))
 
 # запись в файл
-with open("generated_text.txt", "w", encoding="utf-8") as f:
+with open("words.txt", "w", encoding="utf-8") as f:
     f.write(text + "\n")
 
-print(f"Сгенерировано {n} слов и сохранено в 'generated_text.txt'")
+print(f"Сгенерировано {n} слов и сохранено в 'words.txt'")

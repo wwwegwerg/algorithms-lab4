@@ -28,7 +28,7 @@ public class CsvRowVisual : INotifyPropertyChanged {
 
     public int Id { get; }
 
-    public IReadOnlyList<string> Cells { get; }
+    private IReadOnlyList<string> Cells { get; }
 
     public string DisplayText => string.Join(" | ", Cells);
 
@@ -86,7 +86,7 @@ public class CsvRowVisual : INotifyPropertyChanged {
         UpdateVisualState();
     }
 
-    protected bool SetField<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null) {
+    private bool SetField<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null) {
         if (Equals(storage, value)) {
             return false;
         }

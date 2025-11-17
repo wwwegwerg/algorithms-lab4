@@ -6,7 +6,7 @@ namespace lab4.Models;
 public class CsvRowData {
     public CsvRowData(int id, IReadOnlyList<string> cells) {
         Id = id;
-        Cells = cells?.ToList() ?? new List<string>();
+        Cells = cells?.ToList() ?? [];
     }
 
     public int Id { get; }
