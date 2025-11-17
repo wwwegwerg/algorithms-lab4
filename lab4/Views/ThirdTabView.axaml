@@ -147,10 +147,8 @@
                 <TextBlock Text="{Binding StatusMessage}"
                            TextWrapping="Wrap"
                            Margin="0 0 0 4" />
-                <webview:WebView Grid.Row="1"
-                                 x:Name="BenchmarkWebView"
-                                 HorizontalAlignment="Stretch"
-                                 VerticalAlignment="Stretch" />
+                <Grid x:Name="BenchmarkWebViewHost"
+                      Grid.Row="1" />
             </Grid>
 
         </TabItem>

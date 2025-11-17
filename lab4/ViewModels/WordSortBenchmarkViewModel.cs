@@ -26,14 +26,14 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
 
     public bool HasChart => !string.IsNullOrWhiteSpace(_chartFilePath) && _chartFilePath.Length > 0;
 
-    public bool IsRunning {
+    private bool IsRunning {
         get => _isRunning;
-        private set => SetField(ref _isRunning, value);
+        set => SetField(ref _isRunning, value);
     }
 
-    public async Task<string> RunBenchmarkAsync() {
+    public async Task RunBenchmarkAsync() {
         if (IsRunning) {
-            return "";
+            return;
         }
 
         try {
@@ -60,8 +60,6 @@ public class WordSortBenchmarkViewModel : ViewModelBase {
         } finally {
             IsRunning = false;
         }
-
-        return _chartFilePath ?? "";
     }
 
     private static string BuildChart(IReadOnlyList<string> allWords) {
