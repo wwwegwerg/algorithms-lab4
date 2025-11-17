@@ -1,5 +1,156 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="lab4.Views.ThirdTabView">
-    <!-- Пусто по ТЗ -->
+             xmlns:viewModels="clr-namespace:lab4.ViewModels"
+             xmlns:models="clr-namespace:lab4.Models"
+             xmlns:webview="clr-namespace:AvaloniaWebView;assembly=Avalonia.WebView"
+             x:Class="lab4.Views.ThirdTabView"
+             x:DataType="viewModels:WordSortingViewModel">
+    <TabControl SelectionChanged="OnTabSelectionChanged">
+        <TabItem Header="Вкладка 1">
+            <Grid ColumnDefinitions="*,360" Margin="16">
+                <Border Grid.Column="0"
+                        Margin="0 0 12 0"
+                        Padding="16"
+                        Background="#FFFFFF"
+                        CornerRadius="10"
+                        BorderBrush="#E0E7FF"
+                        BorderThickness="1">
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <TextBlock Text="Сортировка слов"
+                                       FontWeight="Bold"
+                                       FontSize="22" />
+
+                            <TextBlock Text="Частоты слов"
+                                       FontWeight="SemiBold"
+                                       FontSize="18" />
+                            <ItemsControl ItemsSource="{Binding WordFrequencies}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"
+                                                   HorizontalAlignment="Center" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="models:WordFrequency">
+                                        <Border Width="160"
+                                                Margin="6"
+                                                Padding="12"
+                                                Background="#F9FAFB"
+                                                BorderBrush="#E0E7FF"
+                                                BorderThickness="1"
+                                                CornerRadius="8">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Word}"
+                                                           FontSize="16"
+                                                           FontWeight="SemiBold"
+                                                           TextAlignment="Center"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding Count, StringFormat='Кол-во: {0}'}"
+                                                           Margin="0 4 0 0"
+                                                           HorizontalAlignment="Center"
+                                                           Foreground="#4B5563" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Border Background="#F4F7FB"
+                                    CornerRadius="8"
+                                    Padding="12"
+                                    IsVisible="{Binding HasPreview}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Отсортированный список слов"
+                                               FontWeight="SemiBold" />
+                                    <ScrollViewer Height="160"
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <TextBlock Text="{Binding SortedWordsPreview}"
+                                                   TextWrapping="Wrap"
+                                                   FontFamily="Consolas" />
+                                    </ScrollViewer>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <Grid Grid.Column="1"
+                      Margin="12 0 0 0"
+                      RowDefinitions="Auto"
+                      RowSpacing="12">
+                    <StackPanel Grid.Row="0" Spacing="12">
+                        <TextBlock Text="Настройки сортировки"
+                                   FontWeight="Bold"
+                                   FontSize="18"
+                                   Margin="0 0 0 8" />
+
+                        <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Исходный текст" />
+                                <TextBox Text="{Binding InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Watermark="Вставьте текст или придумайте свой пример"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         MaxHeight="220"
+                                         MinHeight="60"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                                <TextBlock Text="Слова выделяются на основе буквенно-цифровых символов."
+                                           FontSize="12"
+                                           Foreground="#6B7280"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#F4F7FB" CornerRadius="8" Padding="12">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
+                                    <TextBlock Text="Алгоритм"
+                                               VerticalAlignment="Center" />
+                                    <ComboBox Grid.Column="1"
+                                              Margin="12 0 0 0"
+                                              ItemsSource="{Binding AlgorithmOptions}"
+                                              SelectedValue="{Binding SelectedAlgorithm}"
+                                              SelectedValueBinding="{Binding Key}"
+                                              HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Value}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </Grid>
+
+                                <Button Content="Пуск"
+                                        HorizontalAlignment="Left"
+                                        Click="OnSortClick" />
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{Binding StatusMessage}"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding TotalWordsDisplay, StringFormat='Всего слов: {0}'}"
+                                               FontWeight="SemiBold" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </TabItem>
+
+        <TabItem x:Name="BenchmarkTab" Header="Вкладка 2"
+                 x:DataType="viewModels:WordSortBenchmarkViewModel">
+
+            <Grid x:Name="BenchmarkRoot"
+                  RowDefinitions="Auto,*"
+                  RowSpacing="8">
+                <TextBlock Text="{Binding StatusMessage}"
+                           TextWrapping="Wrap"
+                           Margin="0 0 0 4" />
+                <Grid x:Name="BenchmarkWebViewHost"
+                      Grid.Row="1" />
+            </Grid>
+
+        </TabItem>
+    </TabControl>
 </UserControl>

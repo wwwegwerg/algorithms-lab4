@@ -89,7 +89,7 @@
                                           SelectedValue="{Binding SelectedAlgorithm}"
                                           SelectedValueBinding="{Binding Key}"
                                           HorizontalAlignment="Stretch"
-                                          IsEnabled="{Binding CanEditArray}">
+                                          IsEnabled="{Binding CanAdjustAlgorithm}">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Value}" />
@@ -99,7 +99,7 @@
                             </Grid>
 
                             <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                                <TextBlock Text="Скорость"
+                                <TextBlock Text="Задержка"
                                            VerticalAlignment="Center" />
                                 <Slider Grid.Column="1"
                                         Margin="12 0"
@@ -107,7 +107,8 @@
                                         Maximum="2000"
                                         TickFrequency="50"
                                         IsSnapToTickEnabled="True"
-                                        Value="{Binding AnimationDelayMs}" />
+                                        Value="{Binding AnimationDelayMs}"
+                                        IsEnabled="{Binding CanAdjustDelay}" />
                                 <TextBlock Grid.Column="2"
                                            Margin="12 0 0 0"
                                            Text="{Binding AnimationDelayLabel}"
@@ -118,10 +119,11 @@
                         <StackPanel Spacing="10">
                             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                                 <Button Content="{Binding PlayButtonLabel}"
-                                        Click="OnPlayPauseClick" />
+                                        Click="OnPlayPauseClick"
+                                        IsEnabled="{Binding CanControlPlayback}" />
                                 <Button Content="Шаг"
                                         Click="OnStepClick"
-                                        IsEnabled="{Binding HasPendingActions}" />
+                                        IsEnabled="{Binding CanExecuteStep}" />
                             </StackPanel>
                             <TextBlock Text="{Binding StatusMessage}"
                                        TextWrapping="Wrap" />
@@ -129,7 +131,7 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="{Binding RemainingSteps, StringFormat='Осталось шагов: {0}'}"
+                <TextBlock Text="{Binding RemainingStepsDisplay, StringFormat='Осталось шагов: {0}'}"
                            FontStyle="Italic" />
 
             </StackPanel>

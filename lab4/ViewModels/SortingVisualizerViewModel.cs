@@ -18,8 +18,10 @@ public class SortingVisualizerViewModel : ViewModelBase {
     private const double MaxDelayMs = 2000;
     private double _animationDelayMs = 1200;
     private bool _isPlaying;
+    private bool _hasValidArray;
     private SortAlgorithm _selectedAlgorithm = SortAlgorithm.Bubble;
     private string _statusMessage = "Готов к визуализации";
+    private const string ValidArrayRequiredMessage = "Сначала примените корректный массив.";
 
     public SortingVisualizerViewModel() {
         Items = new ObservableCollection<VisualArrayItem>();
@@ -86,6 +88,7 @@ public class SortingVisualizerViewModel : ViewModelBase {
 
             OnPropertyChanged(nameof(PlayButtonLabel));
             OnPropertyChanged(nameof(CanEditArray));
+            OnPropertyChanged(nameof(CanAdjustAlgorithm));
         }
     }
 
@@ -93,9 +96,34 @@ public class SortingVisualizerViewModel : ViewModelBase {
 
     public bool CanEditArray => !IsPlaying;
 
+    public bool HasValidArray {
+        get => _hasValidArray;
+        private set {
+            if (!SetField(ref _hasValidArray, value)) {
+                return;
+            }
+
+            OnPropertyChanged(nameof(CanAdjustAlgorithm));
+            OnPropertyChanged(nameof(CanAdjustDelay));
+            OnPropertyChanged(nameof(CanControlPlayback));
+            OnPropertyChanged(nameof(CanExecuteStep));
+            OnPropertyChanged(nameof(RemainingStepsDisplay));
+        }
+    }
+
+    public bool CanAdjustAlgorithm => HasValidArray && !IsPlaying;
+
+    public bool CanAdjustDelay => HasValidArray;
+
+    public bool CanControlPlayback => HasValidArray;
+
+    public bool CanExecuteStep => HasValidArray && HasPendingActions;
+
     public int RemainingSteps => _pendingActions.Count;
 
     public bool HasPendingActions => _pendingActions.Count > 0;
+
+    public string RemainingStepsDisplay => HasValidArray ? RemainingSteps.ToString() : "-";
 
     public string StatusMessage {
         get => _statusMessage;
@@ -103,6 +131,10 @@ public class SortingVisualizerViewModel : ViewModelBase {
     }
 
     public void TogglePlayPause() {
+        if (!EnsureArrayReady()) {
+            return;
+        }
+
         if (IsPlaying) {
             Pause();
         } else {
@@ -111,6 +143,10 @@ public class SortingVisualizerViewModel : ViewModelBase {
     }
 
     public void Step() {
+        if (!EnsureArrayReady()) {
+            return;
+        }
+
         if (IsPlaying) {
             Pause();
         }
@@ -140,6 +176,7 @@ public class SortingVisualizerViewModel : ViewModelBase {
         if (!TryParseManualInput(ManualInput, out var numbers, out var error)) {
             StatusMessage = error;
             AddLog(error);
+            HasValidArray = false;
             return false;
         }
 
@@ -148,6 +185,10 @@ public class SortingVisualizerViewModel : ViewModelBase {
     }
 
     private void Start() {
+        if (!EnsureArrayReady()) {
+            return;
+        }
+
         if (!HasPendingActions) {
             PrepareActions();
         }
@@ -304,6 +345,7 @@ public class SortingVisualizerViewModel : ViewModelBase {
         LogEntries.Clear();
         AddLog($"{logMessage}: {ManualInput}");
         StatusMessage = $"Массив из {values.Count} элементов готов.";
+        HasValidArray = true;
 
         PrepareActions();
     }
@@ -330,6 +372,8 @@ public class SortingVisualizerViewModel : ViewModelBase {
     private void UpdateActionsInfo() {
         OnPropertyChanged(nameof(RemainingSteps));
         OnPropertyChanged(nameof(HasPendingActions));
+        OnPropertyChanged(nameof(CanExecuteStep));
+        OnPropertyChanged(nameof(RemainingStepsDisplay));
     }
 
     private VisualArrayItem? GetItem(int index) =>
@@ -403,4 +447,14 @@ public class SortingVisualizerViewModel : ViewModelBase {
     private string GetAlgorithmLabel(SortAlgorithm algorithm) =>
         AlgorithmOptions.FirstOrDefault(x => x.Key == algorithm).Value
         ?? algorithm.ToString();
+
+    private bool EnsureArrayReady() {
+        if (HasValidArray) {
+            return true;
+        }
+
+        StatusMessage = ValidArrayRequiredMessage;
+        return false;
+    }
+
 }

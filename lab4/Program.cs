@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.WebView.Desktop;
 using System;
 
 namespace lab4;
@@ -15,6 +16,7 @@ class Program {
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .UseDesktopWebView()
             .WithInterFont()
             .LogToTrace();
 }
