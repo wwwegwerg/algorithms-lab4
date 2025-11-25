@@ -18,6 +18,9 @@ public class ExternalSortingViewModel : ViewModelBase {
     private readonly DispatcherTimer _timer;
     private readonly List<CsvRowData> _originalRows = [];
     private readonly Dictionary<int, CsvRowVisual> _rowLookup = new();
+    private readonly Dictionary<string, ExternalTapeVisual> _tapeLookup = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<int, ExternalRunVisual> _runVisualLookup = new();
+    private readonly Dictionary<int, string> _runAttachment = new();
     private Queue<ExternalSortAction> _pendingActions = new();
 
     private bool _isPlaying;
@@ -32,6 +35,9 @@ public class ExternalSortingViewModel : ViewModelBase {
     public ExternalSortingViewModel() {
         Rows = [];
         BufferRows = [];
+        TapeVisuals = [];
+        TapeNames = [];
+        TapeRows = [];
         ColumnHeaders = [];
         LogEntries = [];
         AlgorithmOptions = new List<KeyValuePair<ExternalMergeAlgorithm, string>> {
@@ -48,6 +54,12 @@ public class ExternalSortingViewModel : ViewModelBase {
     public ObservableCollection<CsvRowVisual> Rows { get; }
 
     public ObservableCollection<CsvRowVisual> BufferRows { get; }
+
+    public ObservableCollection<ExternalTapeVisual> TapeVisuals { get; }
+
+    public ObservableCollection<string> TapeNames { get; }
+
+    public ObservableCollection<ExternalTapeRowVisual> TapeRows { get; }
 
     public ObservableCollection<string> ColumnHeaders { get; }
 
@@ -73,6 +85,7 @@ public class ExternalSortingViewModel : ViewModelBase {
             }
 
             if (HasFileLoaded) {
+                ClearLogs();
                 AddLog($"Выбран алгоритм: {GetAlgorithmLabel(value)}");
                 PrepareActions();
             }
@@ -99,6 +112,7 @@ public class ExternalSortingViewModel : ViewModelBase {
                 return;
             }
 
+            ClearLogs();
             AddLog($"Выбран столбец: {SelectedColumnHeader ?? $"Колонка {_selectedColumnIndex + 1}"}");
             PrepareActions();
         }
@@ -127,7 +141,7 @@ public class ExternalSortingViewModel : ViewModelBase {
 
     public bool CanLoadFile => !IsPlaying;
 
-    public string BufferHint => $"Буфер имитирует чтение максимум {BufferCapacity} строк.";
+    public string BufferHint => $"Буфер удерживает не более {BufferCapacity} строк — всё остальное читается с диска.";
 
     private bool IsPlaying {
         get => _isPlaying;
@@ -184,7 +198,7 @@ public class ExternalSortingViewModel : ViewModelBase {
             RebuildHeaders(header, dataRows);
             LoadedFileName = Path.GetFileName(filePath);
             StatusMessage = $"Загружено строк: {dataRows.Count}";
-            AddLog($"Файл {LoadedFileName} загружен ({dataRows.Count} строк)");
+            AddLog($"Файл {LoadedFileName} загружен (строк: {dataRows.Count})");
 
             PrepareActions();
             OnPropertyChanged(nameof(HasFileLoaded));
@@ -267,12 +281,23 @@ public class ExternalSortingViewModel : ViewModelBase {
     }
 
     private void ExecuteAction(ExternalSortAction action) {
+        if (action.TapeSnapshot != null && action.TapeSnapshot.Count > 0) {
+            ApplyTapeSnapshot(action.TapeSnapshot);
+        }
+
         switch (action.Type) {
-            case ExternalSortActionType.Compare:
-                ApplyCompare(action);
+            case ExternalSortActionType.BufferLoad:
+            case ExternalSortActionType.BufferSorted:
+                ApplyBufferAction(action);
                 break;
-            case ExternalSortActionType.Move:
-                ApplyMove(action);
+            case ExternalSortActionType.RunWritten:
+                ApplyRunWritten(action);
+                break;
+            case ExternalSortActionType.MergeCompare:
+                ApplyMergeCompare(action);
+                break;
+            case ExternalSortActionType.MergeWrite:
+                ApplyMergeWrite(action);
                 break;
             case ExternalSortActionType.PassComplete:
                 ApplyPassComplete(action);
@@ -285,50 +310,42 @@ public class ExternalSortingViewModel : ViewModelBase {
         }
     }
 
-    private void ApplyCompare(ExternalSortAction action) {
-        if (action.RowIdA.HasValue) {
-            if (_rowLookup.TryGetValue(action.RowIdA.Value, out var first)) {
-                first.IsComparing = true;
-            }
-        }
-
-        if (action.RowIdB.HasValue) {
-            if (_rowLookup.TryGetValue(action.RowIdB.Value, out var second)) {
-                second.IsComparing = true;
-            }
-        }
-
-        UpdateBuffer(action.RowIdA, action.RowIdB);
-        AddLog(action.Message, "Сравнение");
+    private void ApplyBufferAction(ExternalSortAction action) {
+        UpdateBuffer(action.BufferRowIds);
+        StatusMessage = action.Message;
+        AddLog(action.Message, action.Category);
     }
 
-    private void ApplyMove(ExternalSortAction action) {
-        if (!action.RowIdA.HasValue || !action.TargetIndex.HasValue) {
-            return;
+    private void ApplyRunWritten(ExternalSortAction action) {
+        StatusMessage = action.Message;
+        AddLog(action.Message, action.Category);
+    }
+
+    private void ApplyMergeCompare(ExternalSortAction action) {
+        if (action.RowIdA.HasValue && _rowLookup.TryGetValue(action.RowIdA.Value, out var first)) {
+            first.IsComparing = true;
         }
 
-        if (!_rowLookup.TryGetValue(action.RowIdA.Value, out var row)) {
-            return;
+        if (action.RowIdB.HasValue && _rowLookup.TryGetValue(action.RowIdB.Value, out var second)) {
+            second.IsComparing = true;
         }
 
-        var currentIndex = Rows.IndexOf(row);
-        if (currentIndex < 0) {
-            return;
+        UpdateBuffer(action.BufferRowIds);
+        AddLog(action.Message, action.Category);
+    }
+
+    private void ApplyMergeWrite(ExternalSortAction action) {
+        if (action.RowIdA.HasValue && _rowLookup.TryGetValue(action.RowIdA.Value, out var row)) {
+            row.IsMoving = true;
         }
 
-        var targetIndex = Math.Clamp(action.TargetIndex.Value, 0, Rows.Count - 1);
-        if (currentIndex != targetIndex) {
-            Rows.Move(currentIndex, targetIndex);
-        }
-
-        row.IsMoving = true;
-        UpdateBuffer(action.RowIdA, action.RowIdB);
-        AddLog(action.Message, "Перемещение");
+        UpdateBuffer(action.BufferRowIds);
+        AddLog(action.Message, action.Category);
     }
 
     private void ApplyPassComplete(ExternalSortAction action) {
         BufferRows.Clear();
-        AddLog(action.Message, "Проход");
+        AddLog(action.Message, action.Category);
         StatusMessage = action.Message;
     }
 
@@ -343,7 +360,7 @@ public class ExternalSortingViewModel : ViewModelBase {
         StatusMessage = string.IsNullOrWhiteSpace(action.Message)
             ? "Сортировка завершена"
             : action.Message;
-        AddLog(StatusMessage, "Готово");
+        AddLog(StatusMessage, action.Category);
     }
 
     private void UpdateActionsInfo() {
@@ -370,7 +387,8 @@ public class ExternalSortingViewModel : ViewModelBase {
             _originalRows,
             SelectedAlgorithm,
             keyIndex,
-            columnLabel);
+            columnLabel,
+            BufferCapacity);
 
         _pendingActions = new Queue<ExternalSortAction>(actions);
         StatusMessage = $"Подготовлено шагов: {RemainingSteps}";
@@ -382,6 +400,7 @@ public class ExternalSortingViewModel : ViewModelBase {
         Rows.Clear();
         BufferRows.Clear();
         _rowLookup.Clear();
+        ResetTapeVisuals();
         foreach (var row in _originalRows) {
             var visual = new CsvRowVisual(row.Id, row.Cells);
             Rows.Add(visual);
@@ -397,23 +416,179 @@ public class ExternalSortingViewModel : ViewModelBase {
         BufferRows.Clear();
     }
 
-    private void UpdateBuffer(params int?[] rowIds) {
+    private void UpdateBuffer(IEnumerable<int>? rowIds) {
         BufferRows.Clear();
-        if (rowIds == null || rowIds.Length == 0) {
+        if (rowIds == null) {
             return;
         }
 
-        var ordered = rowIds
-            .Where(id => id.HasValue)
-            .Select(id => id!.Value)
-            .Distinct()
-            .Take(BufferCapacity);
-
-        foreach (var id in ordered) {
+        foreach (var id in rowIds
+                     .Distinct()
+                     .Take(BufferCapacity)) {
             if (_rowLookup.TryGetValue(id, out var visual)) {
                 BufferRows.Add(visual);
             }
         }
+    }
+
+    private void ApplyTapeSnapshot(IReadOnlyList<ExternalTapeSnapshot> snapshot) {
+        if (snapshot.Count == 0) {
+            ResetTapeVisuals();
+            return;
+        }
+
+        var seenTapes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < snapshot.Count; i++) {
+            var tapeSnapshot = snapshot[i];
+            seenTapes.Add(tapeSnapshot.TapeName);
+            var tapeVisual = GetOrCreateTapeVisual(tapeSnapshot.TapeName, i);
+            UpdateTapeRuns(tapeVisual, tapeSnapshot);
+        }
+
+        for (var index = TapeVisuals.Count - 1; index >= 0; index--) {
+            var tape = TapeVisuals[index];
+            if (!seenTapes.Contains(tape.Name)) {
+                TapeVisuals.RemoveAt(index);
+                _tapeLookup.Remove(tape.Name);
+            }
+        }
+
+        UpdateTapeNames();
+        RebuildTapeRows();
+    }
+
+    private ExternalTapeVisual GetOrCreateTapeVisual(string name, int desiredIndex) {
+        if (!_tapeLookup.TryGetValue(name, out var visual)) {
+            visual = new ExternalTapeVisual(name);
+            _tapeLookup[name] = visual;
+            TapeVisuals.Add(visual);
+        }
+
+        var currentIndex = TapeVisuals.IndexOf(visual);
+        if (currentIndex >= 0 && currentIndex != desiredIndex && desiredIndex >= 0 && desiredIndex < TapeVisuals.Count) {
+            TapeVisuals.Move(currentIndex, desiredIndex);
+        }
+
+        return visual;
+    }
+
+    private void UpdateTapeRuns(ExternalTapeVisual tapeVisual, ExternalTapeSnapshot snapshot) {
+        var seenRuns = new HashSet<int>();
+        for (var i = 0; i < snapshot.Runs.Count; i++) {
+            var runSnapshot = snapshot.Runs[i];
+            seenRuns.Add(runSnapshot.RunId);
+            if (!_runVisualLookup.TryGetValue(runSnapshot.RunId, out var runVisual)) {
+                runVisual = new ExternalRunVisual(runSnapshot.RunId);
+                _runVisualLookup[runSnapshot.RunId] = runVisual;
+            }
+
+            if (_runAttachment.TryGetValue(runSnapshot.RunId, out var previousTape) &&
+                !string.Equals(previousTape, tapeVisual.Name, StringComparison.OrdinalIgnoreCase) &&
+                _tapeLookup.TryGetValue(previousTape, out var previousTapeVisual)) {
+                previousTapeVisual.Runs.Remove(runVisual);
+            }
+
+            _runAttachment[runSnapshot.RunId] = tapeVisual.Name;
+            if (!tapeVisual.Runs.Contains(runVisual)) {
+                tapeVisual.Runs.Add(runVisual);
+            }
+
+            var currentIndex = tapeVisual.Runs.IndexOf(runVisual);
+            if (currentIndex >= 0 && currentIndex != i && i >= 0 && i < tapeVisual.Runs.Count) {
+                tapeVisual.Runs.Move(currentIndex, i);
+            }
+
+            runVisual.TapeName = tapeVisual.Name;
+            runVisual.OrderIndex = i;
+            runVisual.RowCount = runSnapshot.RowIds.Count;
+            runVisual.DisplayIndex = runSnapshot.DisplayIndex;
+            runVisual.IsActive = runSnapshot.IsActive;
+            runVisual.IsOutput = runSnapshot.IsOutput;
+            PopulateRunRows(runVisual, runSnapshot);
+        }
+
+        for (var index = tapeVisual.Runs.Count - 1; index >= 0; index--) {
+            var run = tapeVisual.Runs[index];
+            if (!seenRuns.Contains(run.RunId)) {
+                tapeVisual.Runs.RemoveAt(index);
+                _runAttachment.Remove(run.RunId);
+                _runVisualLookup.Remove(run.RunId);
+            }
+        }
+    }
+
+    private void PopulateRunRows(ExternalRunVisual runVisual, ExternalRunSnapshot snapshot) {
+        runVisual.Rows.Clear();
+        if (snapshot.RowIds.Count == 0) {
+            return;
+        }
+
+        foreach (var id in snapshot.RowIds) {
+            if (!_rowLookup.TryGetValue(id, out var visualRow)) {
+                continue;
+            }
+
+            var cells = visualRow.Cells ?? Array.Empty<string>();
+            var keyValue = _selectedColumnIndex >= 0 && _selectedColumnIndex < cells.Count
+                ? cells[_selectedColumnIndex]
+                : visualRow.DisplayText;
+
+            var rowVisual = new RunRowVisual(visualRow.Id, string.IsNullOrWhiteSpace(keyValue) ? "—" : keyValue);
+            var columnCount = Math.Max(ColumnHeaders.Count, cells.Count);
+            for (var column = 0; column < columnCount; column++) {
+                var header = column < ColumnHeaders.Count
+                    ? ColumnHeaders[column]
+                    : $"Колонка {column + 1}";
+                var value = column < cells.Count ? cells[column] : string.Empty;
+                rowVisual.Cells.Add(new RowCellVisual(header, string.IsNullOrWhiteSpace(value) ? "—" : value));
+            }
+
+            runVisual.Rows.Add(rowVisual);
+        }
+    }
+
+    private void UpdateTapeNames() {
+        TapeNames.Clear();
+        foreach (var tape in TapeVisuals) {
+            TapeNames.Add(tape.Name);
+        }
+    }
+
+    private void RebuildTapeRows() {
+        TapeRows.Clear();
+        if (TapeVisuals.Count == 0) {
+            return;
+        }
+
+        var maxRuns = TapeVisuals.Max(t => t.Runs.Count);
+        if (maxRuns == 0) {
+            var emptyRow = new ExternalTapeRowVisual();
+            foreach (var tape in TapeVisuals) {
+                emptyRow.Cells.Add(new ExternalTapeCellVisual(tape.Name, null));
+            }
+
+            TapeRows.Add(emptyRow);
+            return;
+        }
+
+        for (var rowIndex = 0; rowIndex < maxRuns; rowIndex++) {
+            var rowVisual = new ExternalTapeRowVisual();
+            foreach (var tape in TapeVisuals) {
+                ExternalRunVisual? run = rowIndex < tape.Runs.Count ? tape.Runs[rowIndex] : null;
+                rowVisual.Cells.Add(new ExternalTapeCellVisual(tape.Name, run));
+            }
+
+            TapeRows.Add(rowVisual);
+        }
+    }
+
+    private void ResetTapeVisuals() {
+        TapeVisuals.Clear();
+        TapeNames.Clear();
+        TapeRows.Clear();
+        _tapeLookup.Clear();
+        _runVisualLookup.Clear();
+        _runAttachment.Clear();
     }
 
     private void UpdateTimerInterval() {
@@ -455,6 +630,7 @@ public class ExternalSortingViewModel : ViewModelBase {
         BufferRows.Clear();
         ColumnHeaders.Clear();
         _rowLookup.Clear();
+        ResetTapeVisuals();
         _pendingActions = new Queue<ExternalSortAction>();
         LoadedFileName = "Файл не выбран";
         UpdateActionsInfo();
@@ -462,6 +638,8 @@ public class ExternalSortingViewModel : ViewModelBase {
         OnPropertyChanged(nameof(CanControl));
         OnPropertyChanged(nameof(CanChangeSettings));
     }
+
+    private void ClearLogs() => LogEntries.Clear();
 
     private void AddLog(string? message, string category = "Инфо") {
         if (string.IsNullOrWhiteSpace(message)) {

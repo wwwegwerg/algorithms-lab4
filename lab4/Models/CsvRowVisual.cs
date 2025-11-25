@@ -28,7 +28,9 @@ public class CsvRowVisual : INotifyPropertyChanged {
 
     public int Id { get; }
 
-    private IReadOnlyList<string> Cells { get; }
+    public int DisplayIndex => Id + 1;
+
+    public IReadOnlyList<string> Cells { get; }
 
     public string DisplayText => string.Join(" | ", Cells);
 

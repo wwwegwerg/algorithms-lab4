@@ -16,9 +16,10 @@
                     <TextBlock Text="Внешние ленты (на диске)"
                                FontSize="18"
                                FontWeight="Bold" />
-                    <TextBlock Text="Каждый блок показывает строку на внешнем носителе. Мы лишь просматриваем их последовательно."
-                               Foreground="#6B7280"
-                               TextWrapping="Wrap" />
+                    <TextBlock
+                        Text="Ленты располагаются колонками, каждая серия синхронизирована по строкам. Раскройте строки, чтобы увидеть все поля."
+                        Foreground="#6B7280"
+                        TextWrapping="Wrap" />
                     <ItemsControl ItemsSource="{Binding ColumnHeaders}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -37,30 +38,111 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" Height="320">
-                        <ItemsControl ItemsSource="{Binding Rows}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Height="460">
+                        <ItemsControl ItemsSource="{Binding TapeRows}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" ItemWidth="240" />
+                                    <StackPanel Orientation="Vertical" Spacing="8" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="models:CsvRowVisual">
-                                    <Border Background="{Binding BackgroundBrush}"
-                                            BorderBrush="{Binding BorderBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="8"
-                                            Margin="4"
-                                            Padding="10 6">
-                                        <StackPanel Spacing="4">
-                                            <TextBlock Text="{Binding Id, StringFormat='Блок #{0}'}"
-                                                       FontWeight="SemiBold" />
-                                            <TextBlock Text="{Binding DisplayText}"
-                                                       FontFamily="Consolas"
-                                                       TextWrapping="Wrap"
-                                                       FontSize="13" />
-                                        </StackPanel>
-                                    </Border>
+                                <DataTemplate DataType="models:ExternalTapeRowVisual">
+                                    <ItemsControl ItemsSource="{Binding Cells}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Rows="1" Columns="{Binding Cells.Count}" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="models:ExternalTapeCellVisual">
+                                                <Border Margin="4"
+                                                        Padding="8"
+                                                        Background="#F8FAFC"
+                                                        BorderBrush="#E0E7FF"
+                                                        BorderThickness="1"
+                                                        CornerRadius="8">
+                                                    <StackPanel Spacing="6">
+                                                        <TextBlock Text="{Binding TapeName}"
+                                                                   FontWeight="SemiBold"
+                                                                   HorizontalAlignment="Center" />
+                                                        <ContentControl Content="{Binding Run}"
+                                                                        IsVisible="{Binding HasRun}">
+                                                            <ContentControl.DataTemplates>
+                                                                <DataTemplate DataType="models:ExternalRunVisual">
+                                                                    <Border Padding="10"
+                                                                            Background="{Binding BackgroundBrush}"
+                                                                            BorderBrush="{Binding BorderBrush}"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="6">
+                                                                        <StackPanel Spacing="8">
+                                                                        <StackPanel Spacing="2">
+                                                                            <TextBlock Text="{Binding DisplayLabel}"
+                                                                                       FontWeight="Bold"
+                                                                                       FontSize="14" />
+                                                                            <TextBlock Text="{Binding RowSummary}"
+                                                                                       FontStyle="Italic"
+                                                                                       Foreground="#6B7280" />
+                                                                        </StackPanel>
+                                                                        <ScrollViewer MaxHeight="220"
+                                                                                      VerticalScrollBarVisibility="Auto">
+                                                                                <ItemsControl ItemsSource="{Binding Rows}">
+                                                                                    <ItemsControl.ItemTemplate>
+                                                                                        <DataTemplate DataType="models:RunRowVisual">
+                                                                                            <Expander Header="{Binding Summary}"
+                                                                                                      IsExpanded="False">
+                                                                                                <ItemsControl ItemsSource="{Binding Cells}">
+                                                                                                    <ItemsControl.ItemsPanel>
+                                                                                                        <ItemsPanelTemplate>
+                                                                                                            <UniformGrid Columns="2" />
+                                                                                                        </ItemsPanelTemplate>
+                                                                                                    </ItemsControl.ItemsPanel>
+                                                                                                    <ItemsControl.ItemTemplate>
+                                                                                                        <DataTemplate DataType="models:RowCellVisual">
+                                                                                                            <Border Margin="2"
+                                                                                                                    Padding="6"
+                                                                                                                    Background="White"
+                                                                                                                    BorderBrush="#E5E7EB"
+                                                                                                                    BorderThickness="1"
+                                                                                                                    CornerRadius="4">
+                                                                                                                <StackPanel Spacing="2">
+                                                                                                                    <TextBlock Text="{Binding Header}"
+                                                                                                                               FontWeight="SemiBold"
+                                                                                                                               FontSize="12" />
+                                                                                                                    <TextBlock Text="{Binding Value}"
+                                                                                                                               FontSize="12"
+                                                                                                                               TextWrapping="Wrap" />
+                                                                                                                </StackPanel>
+                                                                                                            </Border>
+                                                                                                        </DataTemplate>
+                                                                                                    </ItemsControl.ItemTemplate>
+                                                                                                </ItemsControl>
+                                                                                            </Expander>
+                                                                                        </DataTemplate>
+                                                                                    </ItemsControl.ItemTemplate>
+                                                                                </ItemsControl>
+                                                                            </ScrollViewer>
+                                                                        </StackPanel>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ContentControl.DataTemplates>
+                                                        </ContentControl>
+                                                        <Border IsVisible="{Binding HasNoRun}"
+                                                                Padding="16"
+                                                                Background="#FFFFFF"
+                                                                BorderBrush="#E5E7EB"
+                                                                BorderThickness="1"
+                                                                CornerRadius="6">
+                                                            <TextBlock Text="—"
+                                                                       HorizontalAlignment="Center"
+                                                                       Foreground="#9CA3AF" />
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -95,7 +177,7 @@
                                         CornerRadius="6"
                                         Padding="8">
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="{Binding Id, StringFormat='Строка #{0}'}"
+                                        <TextBlock Text="{Binding DisplayIndex, StringFormat='Строка #{0}'}"
                                                    FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding DisplayText}"
                                                    FontFamily="Consolas"
@@ -106,9 +188,6 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Text="{Binding BufferRows.Count, StringFormat='Сейчас в памяти: {0} строк'}"
-                               FontStyle="Italic"
-                               Foreground="#6B7280" />
                 </StackPanel>
             </Border>
 

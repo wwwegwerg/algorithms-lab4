@@ -70,6 +70,7 @@ public partial class SecondTabView : UserControl {
 
         LogListBox.PointerWheelChanged += OnLogPointerWheelChanged;
         LogListBox.PointerPressed += OnLogPointerPressed;
+        LogListBox.SelectionChanged += OnLogSelectionChanged;
     }
 
     private void InitializeAutoScrollToggle() {
@@ -88,7 +89,10 @@ public partial class SecondTabView : UserControl {
             return;
         }
 
-        Dispatcher.UIThread.Post(ScrollLogToEnd);
+        Dispatcher.UIThread.Post(() => {
+            ClearLogSelection();
+            ScrollLogToEnd();
+        });
     }
 
     private void ScrollLogToEnd() {
@@ -100,7 +104,19 @@ public partial class SecondTabView : UserControl {
         if (lastItem != null) {
             LogListBox.ScrollIntoView(lastItem);
         }
+        LogListBox.SelectedIndex = -1;
     }
+
+    private void ClearLogSelection() {
+        if (LogListBox == null) {
+            return;
+        }
+
+        LogListBox.SelectedItem = null;
+        LogListBox.SelectedIndex = -1;
+    }
+
+    private void OnLogSelectionChanged(object? sender, SelectionChangedEventArgs e) => ClearLogSelection();
 
     private void OnLogPointerWheelChanged(object? sender, PointerWheelEventArgs e) => PauseAutoScroll();
 
@@ -131,6 +147,7 @@ public partial class SecondTabView : UserControl {
         }
 
         _autoScrollEnabled = true;
+        ClearLogSelection();
         ScrollLogToEnd();
     }
 

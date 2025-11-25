@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace lab4.Models;
 
 public enum ExternalMergeAlgorithm {
@@ -7,8 +9,11 @@ public enum ExternalMergeAlgorithm {
 }
 
 public enum ExternalSortActionType {
-    Compare,
-    Move,
+    BufferLoad,
+    BufferSorted,
+    RunWritten,
+    MergeCompare,
+    MergeWrite,
     PassComplete,
     Finished
 }
@@ -18,30 +23,27 @@ public class ExternalSortAction {
         ExternalSortActionType type,
         int? rowIdA = null,
         int? rowIdB = null,
-        int? sourceIndex = null,
-        int? targetIndex = null,
-        string? valueA = null,
-        string? valueB = null,
         string? message = null,
-        int? passNumber = null) {
+        int? passNumber = null,
+        IReadOnlyList<int>? bufferRowIds = null,
+        IReadOnlyList<ExternalTapeSnapshot>? tapeSnapshot = null,
+        string? category = null) {
         Type = type;
         RowIdA = rowIdA;
         RowIdB = rowIdB;
-        SourceIndex = sourceIndex;
-        TargetIndex = targetIndex;
-        ValueA = valueA;
-        ValueB = valueB;
+        BufferRowIds = bufferRowIds;
+        TapeSnapshot = tapeSnapshot;
         Message = message ?? string.Empty;
         PassNumber = passNumber;
+        Category = string.IsNullOrWhiteSpace(category) ? "Инфо" : category.Trim();
     }
 
     public ExternalSortActionType Type { get; }
     public int? RowIdA { get; }
     public int? RowIdB { get; }
-    public int? SourceIndex { get; }
-    public int? TargetIndex { get; }
-    public string? ValueA { get; }
-    public string? ValueB { get; }
+    public IReadOnlyList<int>? BufferRowIds { get; }
+    public IReadOnlyList<ExternalTapeSnapshot>? TapeSnapshot { get; }
     public string Message { get; }
     public int? PassNumber { get; }
+    public string Category { get; }
 }
