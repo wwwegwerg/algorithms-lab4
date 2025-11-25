@@ -11,8 +11,9 @@ using lab4.Services;
 namespace lab4.ViewModels;
 
 public class WordSortBenchmarkViewModel : ViewModelBase {
-    // private static readonly int[] SampleSizes = [100, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000];
-    private static readonly int[] SampleSizes = [100, 500, 1_000, 2_000, 5_000];
+    private static readonly int[] SampleSizes =
+        [100, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000, 500_000, 1_000_000];
+
     private string _statusMessage = "Здесь появится сравнение Quick sort и Radix sort.";
     private bool _isRunning;
 

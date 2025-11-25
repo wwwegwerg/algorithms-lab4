@@ -3,7 +3,7 @@
         xmlns:views="clr-namespace:lab4.Views"
         x:Class="lab4.MainWindow"
         Width="1000" Height="750"
-        Title="Sorting Visualizer (Avalonia 11.3.8)">
+        Title="Sorting Visualizer">
     <TabControl>
         <TabItem Header="Задание 1">
             <views:FirstTabView />
