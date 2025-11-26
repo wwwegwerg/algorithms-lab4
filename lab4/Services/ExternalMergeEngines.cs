@@ -89,7 +89,7 @@ public static class ExternalMergeEngines {
                 for (var i = 0; i < currentRuns.Count; i += 2) {
                     var block = currentRuns.Skip(i).Take(2).ToList();
                     var outputTape = outputTapes[outputIndex % outputTapes.Length];
-                    var merged = MergeBlock(block, outputTape, pass, i / 2);
+                    var merged = MergeBlock(block, outputTape);
                     nextRuns.Add(merged);
                     outputIndex++;
                 }
@@ -137,7 +137,7 @@ public static class ExternalMergeEngines {
                 for (var i = 0; i < currentRuns.Count; i += 2) {
                     var block = currentRuns.Skip(i).Take(2).ToList();
                     var outputTape = outputTapes[outputIndex % outputTapes.Length];
-                    var merged = MergeBlock(block, outputTape, pass, i / 2);
+                    var merged = MergeBlock(block, outputTape);
                     nextRuns.Add(merged);
                     outputIndex++;
                 }
@@ -186,7 +186,7 @@ public static class ExternalMergeEngines {
                 for (var i = 0; i < currentRuns.Count; i += fanIn) {
                     var block = currentRuns.Skip(i).Take(fanIn).ToList();
                     var outputTape = outputTapes[outputIndex % outputTapes.Length];
-                    var merged = MergeBlock(block, outputTape, pass, i / Math.Max(1, fanIn));
+                    var merged = MergeBlock(block, outputTape);
                     nextRuns.Add(merged);
                     outputIndex++;
                 }
@@ -300,9 +300,7 @@ public static class ExternalMergeEngines {
 
         private RunFile MergeBlock(
             IReadOnlyList<RunFile> runs,
-            string outputTape,
-            int passNumber,
-            int blockIndex) {
+            string outputTape) {
             if (runs.Count == 0) {
                 throw new InvalidOperationException("Нет серий для слияния");
             }
